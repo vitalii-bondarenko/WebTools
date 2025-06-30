@@ -351,9 +351,9 @@ These params can then be saved and loaded into the autopilot without the need fo
                     data-tippy-content='Different amplitude scales show effects more clearly than others. Note that this scale also apples to the IMU Spectrogram.',
                     data-tippy-maxWidth='750px'/>
                 </legend>
-                <input type="radio" id="ScaleLinear" name="Scale" onchange="redraw()">
+                <input type="radio" id="ScaleLinear" name="Scale" onchange="redraw()" checked>
                 <label for="ScaleLinear">Linear</label>
-                <input type="radio" id="ScaleLog" name="Scale" onchange="redraw()" checked>
+                <input type="radio" id="ScaleLog" name="Scale" onchange="redraw()">
                 <label for="ScaleLog">dB</label>
                 <input type="radio" id="ScalePSD" name="Scale" onchange="redraw()">
                 <label for="ScalePSD">Power Spectral Density</label>

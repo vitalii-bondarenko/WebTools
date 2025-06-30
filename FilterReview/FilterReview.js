@@ -1241,10 +1241,37 @@ function redraw() {
             const min_freq = frequency_scale.fun([stats.min])[0]
             const max_freq = frequency_scale.fun([stats.max])[0]
 
-            const range_index = line_index + 1
-            fft_plot.layout.shapes[range_index].visible = show_notch
-            fft_plot.layout.shapes[range_index].x0 = min_freq
-            fft_plot.layout.shapes[range_index].x1 = max_freq
+        const range_index = line_index + 1
+        fft_plot.layout.shapes[range_index].visible = show_notch
+        fft_plot.layout.shapes[range_index].x0 = min_freq
+        fft_plot.layout.shapes[range_index].x1 = max_freq
+        }
+    }
+
+    // Peak value annotations
+    fft_plot.layout.annotations = []
+    for (let i = 0; i < Gyro_batch.length; i++) {
+        if ((Gyro_batch[i] == null) || (Gyro_batch[i].FFT == null) || (Gyro_batch[i].FFT.x.length == 0)) {
+            continue
+        }
+        let plot_type = Gyro_batch[i].post_filter ? 1 : 0
+        for (let j=0;j<3;j++) {
+            const plot_index = get_FFT_data_index(Gyro_batch[i].sensor_num, plot_type, j)
+            const trace = fft_plot.data[plot_index]
+            if (!trace.visible || trace.y == null || trace.y.length == 0) {
+                continue
+            }
+            let max_i = 0
+            for (let k=1;k<trace.y.length;k++) {
+                if (trace.y[k] > trace.y[max_i]) {
+                    max_i = k
+                }
+            }
+            fft_plot.layout.annotations.push({ x: trace.x[max_i],
+                                               y: trace.y[max_i],
+                                               text: trace.y[max_i].toFixed(2),
+                                               showarrow: true,
+                                               arrowhead: 2 })
         }
     }
 
