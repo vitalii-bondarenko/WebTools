@@ -466,17 +466,6 @@ function setup_FFT_data() {
 
     }
 
-    // Horizontal line for D = 0.1
-    TimeOutputs.layout.shapes.push({
-        type: 'line',
-        xref: 'paper',
-        x0: 0,
-        x1: 1,
-        y0: 0.1,
-        y1: 0.1,
-        line: {color: 'red', dash: 'dot'}
-    })
-
     let plot = document.getElementById("TimeInputs")
     Plotly.purge(plot)
     Plotly.newPlot(plot, TimeInputs.data, TimeInputs.layout, {displaylogo: false})
@@ -848,8 +837,6 @@ function redraw() {
     Plotly.redraw("TimeInputs")
     Plotly.redraw("TimeOutputs")
 
-    update_time_domain_stats()
-
     if (PID.sets.FFT == null) {
         return
     }
@@ -930,38 +917,6 @@ function redraw() {
     redraw_Spectrogram()
 
     redraw_step()
-}
-
-function update_time_domain_stats() {
-    function mean(arr) {
-        let sum = 0
-        let count = 0
-        for (const v of arr) {
-            if (!Number.isNaN(v)) {
-                sum += v
-                count += 1
-            }
-        }
-        return count > 0 ? sum / count : NaN
-    }
-
-    const target_mean = mean(TimeInputs.data[0].y)
-    const actual_mean = mean(TimeInputs.data[1].y)
-
-    if (!Number.isNaN(target_mean) && !Number.isNaN(actual_mean)) {
-        document.getElementById('TimeSummary').innerHTML =
-            `Target mean: ${target_mean.toFixed(2)} | Actual mean: ${actual_mean.toFixed(2)}`
-    }
-
-    const d_mean = mean(TimeOutputs.data[2].y)
-    const d_vals = TimeOutputs.data[2].y.filter(v => !Number.isNaN(v))
-    if (d_vals.length > 0) {
-        const d_max = Math.max(...d_vals)
-        if (!Number.isNaN(d_mean) && !Number.isNaN(d_max)) {
-            document.getElementById('DStats').innerHTML =
-                `D mean: ${d_mean.toFixed(2)} | D max: ${d_max.toFixed(2)}`
-        }
-    }
 }
 
 function redraw_Spectrogram() {
@@ -1641,9 +1596,6 @@ async function load(log_file) {
     end_input.value = end_time
     end_input.max = end_time
 
-    // Auto select ALT_HOLD pitch segment
-    auto_select_alt_hold_pitch(log)
-
     // Calculate FFT
     calculate()
 
@@ -1652,63 +1604,6 @@ async function load(log_file) {
 
     const end = performance.now();
     console.log(`Load took: ${end - start} ms`);
-}
-
-function auto_select_alt_hold_pitch(log) {
-    if (!("MODE" in log.messageTypes) || !("ATT" in log.messageTypes)) {
-        return
-    }
-
-    const mode = log.get("MODE")
-    const mode_time = TimeUS_to_seconds(mode.TimeUS)
-    const mode_text = mode.asText
-
-    const att_time = TimeUS_to_seconds(log.get("ATT", "TimeUS"))
-    const roll = log.get("ATT", "Roll")
-    const pitch = log.get("ATT", "Pitch")
-
-    function index_from_time(arr, t) {
-        let i = 0
-        while (i < arr.length && arr[i] < t) {
-            i++
-        }
-        return i
-    }
-
-    let best = null
-    let best_len = 0
-    for (let i = 0; i < mode_text.length; i++) {
-        if (mode_text[i] !== 'ALT_HOLD') {
-            continue
-        }
-        const start = mode_time[i]
-        const end = (i < mode_text.length - 1) ? mode_time[i+1] : mode_time[i]
-        if (end <= start) {
-            continue
-        }
-        const si = index_from_time(att_time, start)
-        const ei = index_from_time(att_time, end)
-        if (ei - si < 2) {
-            continue
-        }
-        const pseg = pitch.slice(si, ei)
-        const rseg = roll.slice(si, ei)
-        const prange = Math.max(...pseg) - Math.min(...pseg)
-        const rrange = Math.max(...rseg) - Math.min(...rseg)
-        if (prange > 5 && rrange < 2) {
-            const dur = att_time[ei-1] - att_time[si]
-            if (dur > best_len) {
-                best_len = dur
-                best = {start: att_time[si], end: att_time[ei-1]}
-            }
-        }
-    }
-
-    if (best) {
-        document.getElementById("type_PIDP").checked = true
-        document.getElementById("TimeStart").value = Math.floor(best.start)
-        document.getElementById("TimeEnd").value = Math.ceil(best.end)
-    }
 }
 
 // Setup the selected axis
