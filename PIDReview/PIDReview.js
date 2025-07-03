@@ -104,7 +104,7 @@ function reset() {
 
     document.title = "ArduPilot PID Review"
 
-    const types = ["PIDP",   "PIDR",   "PIDY",
+    const types = ["PIDP",   "PIDR",   "PIDY",   "PIDA",
                    "PIQP",   "PIQR",   "PIQY",
                    "RATE_R", "RATE_P", "RATE_Y"]
     for (const type of types) {
@@ -1381,6 +1381,7 @@ async function load(log_file) {
     PID_log_messages = [ {id: ["PIDR"],      prefixes: [ "ATC_RAT_RLL_", "RLL_RATE_"]},
                          {id: ["PIDP"],      prefixes: [ "ATC_RAT_PIT_", "PTCH_RATE_"]},
                          {id: ["PIDY"],      prefixes: [ "ATC_RAT_YAW_", "YAW_RATE_"]},
+                         {id: ["PIDA"],      prefixes: [ "PSC_ACCZ_",   "Q_P_ACCZ_" ]},
                          {id: ["PIQR"],      prefixes: [                 "Q_A_RAT_RLL_"]},
                          {id: ["PIQP"],      prefixes: [                 "Q_A_RAT_PIT_"]},
                          {id: ["PIQY"],      prefixes: [                 "Q_A_RAT_YAW_"]},
@@ -1499,13 +1500,13 @@ async function load(log_file) {
                                                                      Out: Array.from(log_msg[axis_prefix + "Out"].slice(batch.batch_start, batch.batch_end))})
 
                 } else {
-                    // Convert radians to degress
                     const rad2deg = 180.0 / Math.PI
+                    const scale = id === "PIDA" ? 1 : rad2deg
                     PID_log_messages[i].sets[batch.param_set].push({ time: time.slice(batch.batch_start, batch.batch_end),
                                                                      sample_rate: batch.sample_rate,
-                                                                     Tar: array_scale(Array.from(log_msg.Tar.slice(batch.batch_start, batch.batch_end)), rad2deg),
-                                                                     Act: array_scale(Array.from(log_msg.Act.slice(batch.batch_start, batch.batch_end)), rad2deg),
-                                                                     Err: array_scale(Array.from(log_msg.Err.slice(batch.batch_start, batch.batch_end)), rad2deg),
+                                                                     Tar: array_scale(Array.from(log_msg.Tar.slice(batch.batch_start, batch.batch_end)), scale),
+                                                                     Act: array_scale(Array.from(log_msg.Act.slice(batch.batch_start, batch.batch_end)), scale),
+                                                                     Err: array_scale(Array.from(log_msg.Err.slice(batch.batch_start, batch.batch_end)), scale),
                                                                      P:   Array.from(log_msg.P.slice(batch.batch_start, batch.batch_end)),
                                                                      I:   Array.from(log_msg.I.slice(batch.batch_start, batch.batch_end)),
                                                                      D:   Array.from(log_msg.D.slice(batch.batch_start, batch.batch_end)),
