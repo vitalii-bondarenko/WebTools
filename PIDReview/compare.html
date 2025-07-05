@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>PID Review Compare</title>
+<link rel="icon" href="../images/AP_favicon.png">
+<style>
+  #frames { display:flex; width:1200px; }
+  iframe { width:50%; height:1200px; border:none; }
+</style>
+</head>
+<body>
+<table style="width:1200px"><tr><td>
+    <a href="https://ardupilot.org"><img src="../images/ArduPilot.png"></a>
+</td><td>
+    <a href="https://github.com/ArduPilot/WebTools"><img src="../images/github-mark.png" style="width:60px"></a>
+    <br>
+    <a href="https://github.com/ArduPilot/WebTools"><img src="../images/GitHub_Logo.png" style="width:60px"></a>
+</td></tr></table>
+
+<h1 style="text-align:center">PID Review Compare</h1>
+
+<div style="width:1200px; text-align:center;">
+    <input id="file1" type="file" accept=".bin">
+    <input id="file2" type="file" accept=".bin">
+</div>
+
+<div id="frames">
+    <iframe id="frame1" src="index.html"></iframe>
+    <iframe id="frame2" src="index.html"></iframe>
+</div>
+
+<script>
+function loadFile(input, frame) {
+    const file = input.files[0];
+    if (!file) { return; }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        frame.contentWindow.postMessage({ type: 'arrayBuffer', data: e.target.result }, '*');
+    }
+    reader.readAsArrayBuffer(file);
+}
+
+document.getElementById('file1').addEventListener('change', function() { loadFile(this, document.getElementById('frame1')); });
+document.getElementById('file2').addEventListener('change', function() { loadFile(this, document.getElementById('frame2')); });
+</script>
+</body>
+</html>
