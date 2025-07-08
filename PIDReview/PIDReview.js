@@ -122,6 +122,10 @@ function reset() {
         TimeOutputs.data[i].x = []
         TimeOutputs.data[i].y = []
     }
+    for (let i = 0; i < AttPlot.data.length; i++) {
+        AttPlot.data[i].x = []
+        AttPlot.data[i].y = []
+    }
     for (let i = 0; i < fft_plot.data.length; i++) {
         fft_plot.data[i].x = []
         fft_plot.data[i].y = []
@@ -134,6 +138,7 @@ function reset() {
         Spectrogram.data[i].x = []
         Spectrogram.data[i].y = []
     }
+    Attitude = {}
 
     document.getElementById("calculate").disabled = true
 
@@ -161,6 +166,8 @@ function reset() {
 var flight_data = {}
 var TimeInputs = {}
 var TimeOutputs = {}
+var AttPlot = {}
+var Attitude = {}
 var fft_plot = {}
 var step_plot = {}
 var Spectrogram = {}
@@ -290,6 +297,26 @@ function setup_plots() {
     Plotly.purge(plot)
     Plotly.newPlot(plot, TimeOutputs.data, TimeOutputs.layout, {displaylogo: false})
 
+    // Attitude Desired vs Actual plot
+    const att_inputs = ["Desired", "Actual"]
+    AttPlot.data = []
+    for (const item of att_inputs) {
+        AttPlot.data.push({ mode: "lines",
+                             name: item,
+                             meta: item,
+                             showlegend: true,
+                             hovertemplate: "<extra></extra>%{meta}<br>%{x:.2f} s<br>%{y:.2f} deg" })
+    }
+
+    AttPlot.layout = { legend: {itemclick: false, itemdoubleclick: false },
+                        margin: { b: 50, l: 50, r: 50, t: 20 },
+                        xaxis: { title: {text: time_scale_label } },
+                        yaxis: { title: {text: "deg" } }}
+
+    plot = document.getElementById("AttPlot")
+    Plotly.purge(plot)
+    Plotly.newPlot(plot, AttPlot.data, AttPlot.layout, {displaylogo: false})
+
 
     amplitude_scale = get_amplitude_scale()
     frequency_scale = get_frequency_scale()
@@ -362,6 +389,7 @@ function link_plots() {
     // Clear listeners
     document.getElementById("TimeInputs").removeAllListeners("plotly_relayout");
     document.getElementById("TimeOutputs").removeAllListeners("plotly_relayout");
+    document.getElementById("AttPlot").removeAllListeners("plotly_relayout");
     document.getElementById("FFTPlot").removeAllListeners("plotly_relayout");
     document.getElementById("Spectrogram").removeAllListeners("plotly_relayout");
     document.getElementById("step_plot").removeAllListeners("plotly_relayout");
@@ -374,12 +402,14 @@ function link_plots() {
     // Link time axis
     link_plot_axis_range([["TimeInputs", "x", "", TimeInputs],
                           ["TimeOutputs", "x", "", TimeOutputs],
+                          ["AttPlot", "x", "", AttPlot],
                           ["Spectrogram", "x", "", Spectrogram]])
 
 
     // Link all reset calls
     link_plot_reset([["TimeInputs", TimeInputs],
                      ["TimeOutputs", TimeOutputs],
+                     ["AttPlot", AttPlot],
                      ["FFTPlot", fft_plot],
                      ["step_plot", step_plot],
                      ["Spectrogram", Spectrogram]])
@@ -399,6 +429,7 @@ function setup_FFT_data() {
     // Clear existing data
     TimeInputs.layout.shapes = []
     TimeOutputs.layout.shapes = []
+    AttPlot.layout.shapes = []
     fft_plot.data = []
     step_plot.data = []
 
@@ -463,6 +494,7 @@ function setup_FFT_data() {
 
         TimeInputs.layout.shapes.push(Object.assign({}, rect))
         TimeOutputs.layout.shapes.push(Object.assign({}, rect))
+        AttPlot.layout.shapes.push(Object.assign({}, rect))
 
     }
 
@@ -764,6 +796,10 @@ function redraw() {
         TimeOutputs.data[i].x = []
         TimeOutputs.data[i].y = []
     }
+    for (let i = 0; i < AttPlot.data.length; i++) {
+        AttPlot.data[i].x = []
+        AttPlot.data[i].y = []
+    }
     for (const set of PID.sets) {
         if (set == null) {
             continue
@@ -809,6 +845,26 @@ function redraw() {
         }
     }
 
+    // Attitude Desired vs Actual
+    if (Attitude.time != null) {
+        const axis_id = PID_log_messages[get_axis_index()].id
+        let des, act
+        if (axis_id.includes("R")) {
+            des = Attitude.desRoll
+            act = Attitude.roll
+        } else if (axis_id.includes("P")) {
+            des = Attitude.desPitch
+            act = Attitude.pitch
+        } else {
+            des = Attitude.desYaw
+            act = Attitude.yaw
+        }
+        AttPlot.data[0].x = Attitude.time
+        AttPlot.data[0].y = des
+        AttPlot.data[1].x = Attitude.time
+        AttPlot.data[1].y = act
+    }
+
     // Set X axis to selected time range
     const time_range = [ parseFloat(document.getElementById("TimeStart").value), parseFloat(document.getElementById("TimeEnd").value) ]
 
@@ -817,6 +873,9 @@ function redraw() {
 
     TimeOutputs.layout.xaxis.autorange = false
     TimeOutputs.layout.xaxis.range = time_range
+
+    AttPlot.layout.xaxis.autorange = false
+    AttPlot.layout.xaxis.range = time_range
 
     // Rectangles to show param changes
     if (PID.params.sets.length > 1) {
@@ -831,11 +890,16 @@ function redraw() {
             TimeOutputs.layout.shapes[i].x0 = set_start
             TimeOutputs.layout.shapes[i].x1 = set_end
             TimeOutputs.layout.shapes[i].visible = true
+
+            AttPlot.layout.shapes[i].x0 = set_start
+            AttPlot.layout.shapes[i].x1 = set_end
+            AttPlot.layout.shapes[i].visible = true
         }
     }
 
     Plotly.redraw("TimeInputs")
     Plotly.redraw("TimeOutputs")
+    Plotly.redraw("AttPlot")
 
     if (PID.sets.FFT == null) {
         return
@@ -1542,6 +1606,14 @@ async function load(log_file) {
 
         flight_data.data[1].x = ATT_time
         flight_data.data[1].y = log.get("ATT", "Pitch")
+
+        Attitude.time = ATT_time
+        Attitude.desRoll = log.get("ATT", "DesRoll")
+        Attitude.roll = log.get("ATT", "Roll")
+        Attitude.desPitch = log.get("ATT", "DesPitch")
+        Attitude.pitch = log.get("ATT", "Pitch")
+        Attitude.desYaw = log.get("ATT", "DesYaw")
+        Attitude.yaw = log.get("ATT", "Yaw")
     }
 
 
