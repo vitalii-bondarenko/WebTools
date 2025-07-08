@@ -126,6 +126,10 @@ function reset() {
         AttPlot.data[i].x = []
         AttPlot.data[i].y = []
     }
+    for (let i = 0; i < (AltPlot.data ? AltPlot.data.length : 0); i++) {
+        AltPlot.data[i].x = []
+        AltPlot.data[i].y = []
+    }
     for (let i = 0; i < fft_plot.data.length; i++) {
         fft_plot.data[i].x = []
         fft_plot.data[i].y = []
@@ -139,6 +143,7 @@ function reset() {
         Spectrogram.data[i].y = []
     }
     Attitude = {}
+    Altitude = {}
 
     document.getElementById("calculate").disabled = true
 
@@ -167,7 +172,9 @@ var flight_data = {}
 var TimeInputs = {}
 var TimeOutputs = {}
 var AttPlot = {}
+var AltPlot = {}
 var Attitude = {}
+var Altitude = {}
 var fft_plot = {}
 var step_plot = {}
 var Spectrogram = {}
@@ -317,6 +324,28 @@ function setup_plots() {
     Plotly.purge(plot)
     Plotly.newPlot(plot, AttPlot.data, AttPlot.layout, {displaylogo: false})
 
+    // Altitude Desired vs Actual plot
+    const alt_inputs = ["Desired Alt", "Altitude"]
+    AltPlot.data = []
+    for (const item of alt_inputs) {
+        AltPlot.data.push({ mode: "lines",
+                            name: item,
+                            meta: item,
+                            showlegend: true,
+                            hovertemplate: "<extra></extra>%{meta}<br>%{x:.2f} s<br>%{y:.2f} m" })
+    }
+
+    AltPlot.layout = { legend: {itemclick: false, itemdoubleclick: false },
+                        margin: { b: 50, l: 50, r: 50, t: 20 },
+                        xaxis: { title: {text: time_scale_label } },
+                        yaxis: { title: {text: "m" } }}
+
+    plot = document.getElementById("AltPlot")
+    if (plot) {
+        Plotly.purge(plot)
+        Plotly.newPlot(plot, AltPlot.data, AltPlot.layout, {displaylogo: false})
+    }
+
 
     amplitude_scale = get_amplitude_scale()
     frequency_scale = get_frequency_scale()
@@ -390,6 +419,9 @@ function link_plots() {
     document.getElementById("TimeInputs").removeAllListeners("plotly_relayout");
     document.getElementById("TimeOutputs").removeAllListeners("plotly_relayout");
     document.getElementById("AttPlot").removeAllListeners("plotly_relayout");
+    if (document.getElementById("AltPlot")) {
+        document.getElementById("AltPlot").removeAllListeners("plotly_relayout");
+    }
     document.getElementById("FFTPlot").removeAllListeners("plotly_relayout");
     document.getElementById("Spectrogram").removeAllListeners("plotly_relayout");
     document.getElementById("step_plot").removeAllListeners("plotly_relayout");
@@ -400,19 +432,27 @@ function link_plots() {
                           ["Spectrogram", "y", "", Spectrogram]])
 
     // Link time axis
-    link_plot_axis_range([["TimeInputs", "x", "", TimeInputs],
-                          ["TimeOutputs", "x", "", TimeOutputs],
-                          ["AttPlot", "x", "", AttPlot],
-                          ["Spectrogram", "x", "", Spectrogram]])
+    let time_plots = [["TimeInputs", "x", "", TimeInputs],
+                      ["TimeOutputs", "x", "", TimeOutputs],
+                      ["AttPlot", "x", "", AttPlot],
+                      ["Spectrogram", "x", "", Spectrogram]]
+    if (document.getElementById("AltPlot")) {
+        time_plots.splice(2, 0, ["AltPlot", "x", "", AltPlot])
+    }
+    link_plot_axis_range(time_plots)
 
 
     // Link all reset calls
-    link_plot_reset([["TimeInputs", TimeInputs],
-                     ["TimeOutputs", TimeOutputs],
-                     ["AttPlot", AttPlot],
-                     ["FFTPlot", fft_plot],
-                     ["step_plot", step_plot],
-                     ["Spectrogram", Spectrogram]])
+    let reset_plots = [["TimeInputs", TimeInputs],
+                       ["TimeOutputs", TimeOutputs],
+                       ["AttPlot", AttPlot],
+                       ["FFTPlot", fft_plot],
+                       ["step_plot", step_plot],
+                       ["Spectrogram", Spectrogram]]
+    if (document.getElementById("AltPlot")) {
+        reset_plots.splice(2, 0, ["AltPlot", AltPlot])
+    }
+    link_plot_reset(reset_plots)
 
 }
 
@@ -430,6 +470,7 @@ function setup_FFT_data() {
     TimeInputs.layout.shapes = []
     TimeOutputs.layout.shapes = []
     AttPlot.layout.shapes = []
+    AltPlot.layout.shapes = []
     fft_plot.data = []
     step_plot.data = []
 
@@ -495,6 +536,7 @@ function setup_FFT_data() {
         TimeInputs.layout.shapes.push(Object.assign({}, rect))
         TimeOutputs.layout.shapes.push(Object.assign({}, rect))
         AttPlot.layout.shapes.push(Object.assign({}, rect))
+        AltPlot.layout.shapes.push(Object.assign({}, rect))
 
     }
 
@@ -845,14 +887,21 @@ function redraw() {
         }
     }
 
-    // Attitude Desired vs Actual
-    if (Attitude.time != null) {
-        const axis_id = PID_log_messages[get_axis_index()].id
+    // Attitude or Altitude Desired vs Actual
+    const axis_id = PID_log_messages[get_axis_index()].id
+    const axis_letter = axis_id.length > 1 ? axis_id[1] : axis_id[0].slice(-1)
+
+    document.getElementById("AttPlot").style.display = axis_letter === 'A' ? 'none' : 'block'
+    if (document.getElementById("AltPlot")) {
+        document.getElementById("AltPlot").style.display = axis_letter === 'A' ? 'block' : 'none'
+    }
+
+    if (axis_letter !== 'A' && Attitude.time != null) {
         let des, act
-        if (axis_id.includes("R")) {
+        if (axis_letter === "R") {
             des = Attitude.desRoll
             act = Attitude.roll
-        } else if (axis_id.includes("P")) {
+        } else if (axis_letter === "P") {
             des = Attitude.desPitch
             act = Attitude.pitch
         } else {
@@ -863,6 +912,13 @@ function redraw() {
         AttPlot.data[0].y = des
         AttPlot.data[1].x = Attitude.time
         AttPlot.data[1].y = act
+    }
+
+    if (axis_letter === 'A' && Altitude.time != null) {
+        AltPlot.data[0].x = Altitude.time
+        AltPlot.data[0].y = Altitude.desAlt
+        AltPlot.data[1].x = Altitude.time
+        AltPlot.data[1].y = Altitude.alt
     }
 
     // Set X axis to selected time range
@@ -876,6 +932,10 @@ function redraw() {
 
     AttPlot.layout.xaxis.autorange = false
     AttPlot.layout.xaxis.range = time_range
+    if (document.getElementById("AltPlot")) {
+        AltPlot.layout.xaxis.autorange = false
+        AltPlot.layout.xaxis.range = time_range
+    }
 
     // Rectangles to show param changes
     if (PID.params.sets.length > 1) {
@@ -894,12 +954,20 @@ function redraw() {
             AttPlot.layout.shapes[i].x0 = set_start
             AttPlot.layout.shapes[i].x1 = set_end
             AttPlot.layout.shapes[i].visible = true
+            if (document.getElementById("AltPlot")) {
+                AltPlot.layout.shapes[i].x0 = set_start
+                AltPlot.layout.shapes[i].x1 = set_end
+                AltPlot.layout.shapes[i].visible = true
+            }
         }
     }
 
     Plotly.redraw("TimeInputs")
     Plotly.redraw("TimeOutputs")
     Plotly.redraw("AttPlot")
+    if (document.getElementById("AltPlot")) {
+        Plotly.redraw("AltPlot")
+    }
 
     if (PID.sets.FFT == null) {
         return
@@ -1625,6 +1693,13 @@ async function load(log_file) {
     if ("POS" in log.messageTypes) {
         flight_data.data[3].x = TimeUS_to_seconds(log.get("POS", "TimeUS"))
         flight_data.data[3].y = log.get("POS", "RelHomeAlt")
+    }
+
+    if ("CTUN" in log.messageTypes) {
+        const CT_time = TimeUS_to_seconds(log.get("CTUN", "TimeUS"))
+        Altitude.time = CT_time
+        Altitude.desAlt = log.get("CTUN", "DAlt")
+        Altitude.alt = log.get("CTUN", "Alt")
     }
 
     Plotly.redraw("FlightData")
