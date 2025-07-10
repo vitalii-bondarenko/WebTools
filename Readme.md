@@ -25,6 +25,15 @@ You need to keep your submodules update. When you rebase, or switch branches, up
 git submodule update --init --recursive
 ```
 
+If deploying via CI (for example using the provided GitHub Actions workflows),
+ensure the checkout step fetches submodules:
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    submodules: recursive
+```
+
 ## VSCode
 
 This repository contains VSCode launch configurations for debugging with Chrome and Edge. WebTools are either hosted with python as above or using the [LiveServer extension](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) which enables auto-reload. More information on debugging with VSCode [here](https://code.visualstudio.com/docs/editor/debugging).
