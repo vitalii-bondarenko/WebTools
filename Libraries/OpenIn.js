@@ -64,6 +64,13 @@ function get_open_in(get_file_fun) {
             }
 
             if (dest.hook_load) {
+                // If running inside the Tool Hub pass request to parent so the
+                // new tool opens in the same hub tab
+                if (window.parent !== window) {
+                    window.parent.postMessage({ type: 'openInHub', path: dest.path, file }, '*')
+                    return
+                }
+
                 // Open the new page and keep a reference to it
                 const newWindow = window.open(dest.path)
 
