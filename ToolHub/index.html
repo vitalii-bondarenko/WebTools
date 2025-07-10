@@ -30,6 +30,20 @@ function show(tool) {
     frame.src='../'+tool+'/index.html';
   }
 }
+
+// Listen for "open in" requests from tools loaded in the iframe
+window.addEventListener('message', function(e) {
+  if (e.data.type === 'openInHub') {
+    var frame=document.getElementById('frame');
+    var split=document.getElementById('split');
+    split.style.display='none';
+    frame.style.display='block';
+    frame.src=e.data.path;
+    frame.onload=function() {
+      frame.contentWindow.postMessage({ type:'file', data:e.data.file }, '*');
+    };
+  }
+});
 </script>
 </head>
 <body onload="show('LogFinder')">
