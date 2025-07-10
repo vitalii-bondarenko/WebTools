@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>ArduPilot Tool Hub</title>
+<style>
+  body { margin:0; }
+  #toolbar { background:#eee; padding:10px; text-align:center; }
+  iframe { border:none; width:100%; height:calc(100vh - 50px); }
+  #split { display:flex; height:calc(100vh - 50px); }
+  #split iframe { flex:1; border:none; }
+</style>
+<script>
+function show(tool) {
+  var frame=document.getElementById('frame');
+  var split=document.getElementById('split');
+  if (tool==='FilterSplit') {
+    frame.style.display='none';
+    split.style.display='flex';
+    split.children[0].src='../FilterReview/index.html';
+    split.children[1].src='../FilterReview/index.html';
+  } else if (tool==='PIDSplit') {
+    frame.style.display='none';
+    split.style.display='flex';
+    split.children[0].src='../PIDReview/index.html';
+    split.children[1].src='../PIDReview/index.html';
+  } else {
+    split.style.display='none';
+    frame.style.display='block';
+    frame.src='../'+tool+'/index.html';
+  }
+}
+</script>
+</head>
+<body onload="show('LogFinder')">
+<div id="toolbar">
+<button onclick="show('LogFinder')">Log Finder</button>
+<button onclick="show('FilterReview')">Filter Review</button>
+<button onclick="show('PIDReview')">PID Review</button>
+<button onclick="show('FilterSplit')">Filter Review Split</button>
+<button onclick="show('PIDSplit')">PID Review Split</button>
+</div>
+<iframe id="frame"></iframe>
+<div id="split" style="display:none">
+  <iframe></iframe>
+  <iframe></iframe>
+</div>
+</body>
+</html>

@@ -29,6 +29,9 @@
 <table><tr><td style="width:1200px">
 <h1 style="text-align:center"><a href="" style="color: #000000; text-decoration:none;">ArduPilot PID Review Tool</a></h1>
 </td></tr></table>
+<div style="text-align:center; margin-bottom:10px;">
+    <button onclick="history.back()">Back to Log Finder</button>
+</div>
 
 <body>
 
@@ -72,14 +75,6 @@
                 <legend>Axis</legend>
                 <table>
                     <td>
-                        <input type="radio" id="type_RATE_R" name="Axis" onchange="loading_call(setup_axis)">
-                        <label for="type_RATE_R">RATE Roll</label><br>
-                        <input type="radio" id="type_RATE_P" name="Axis" onchange="loading_call(setup_axis)">
-                        <label for="type_RATE_P">RATE Pitch</label><br>
-                        <input type="radio" id="type_RATE_Y" name="Axis" onchange="loading_call(setup_axis)">
-                        <label for="type_RATE_Y">RATE Yaw</label><br>
-                    </td>
-                    <td>
                         <input type="radio" id="type_PIDR" name="Axis" onchange="loading_call(setup_axis)">
                         <label for="type_PIDR">PIDR</label><br>
                         <input type="radio" id="type_PIDP" name="Axis" onchange="loading_call(setup_axis)">
@@ -88,14 +83,6 @@
                         <label for="type_PIDY">PIDY</label><br>
                         <input type="radio" id="type_PIDA" name="Axis" onchange="loading_call(setup_axis)">
                         <label for="type_PIDA">PIDA</label><br>
-                    </td>
-                    <td>
-                        <input type="radio" id="type_PIQR" name="Axis" onchange="loading_call(setup_axis)">
-                        <label for="type_PIQR">PIQR</label><br>
-                        <input type="radio" id="type_PIQP" name="Axis" onchange="loading_call(setup_axis)">
-                        <label for="type_PIQP">PIQP</label><br>
-                        <input type="radio" id="type_PIQY" name="Axis" onchange="loading_call(setup_axis)">
-                        <label for="type_PIQY">PIQY</label><br>
                     </td>
                 </table>
             </fieldset>

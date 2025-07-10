@@ -104,9 +104,7 @@ function reset() {
 
     document.title = "ArduPilot PID Review"
 
-    const types = ["PIDP",   "PIDR",   "PIDY",   "PIDA",
-                   "PIQP",   "PIQR",   "PIQY",
-                   "RATE_R", "RATE_P", "RATE_Y"]
+    const types = ["PIDP", "PIDR", "PIDY", "PIDA"]
     for (const type of types) {
         let ele = document.getElementById("type_" + type)
         ele.disabled = true
@@ -1517,16 +1515,10 @@ async function load(log_file) {
     reset()
 
     // Reset log object                                  Copter          Plane
-    PID_log_messages = [ {id: ["PIDR"],      prefixes: [ "ATC_RAT_RLL_", "RLL_RATE_"]},
-                         {id: ["PIDP"],      prefixes: [ "ATC_RAT_PIT_", "PTCH_RATE_"]},
-                         {id: ["PIDY"],      prefixes: [ "ATC_RAT_YAW_", "YAW_RATE_"]},
-                         {id: ["PIDA"],      prefixes: [ "PSC_ACCZ_",   "Q_P_ACCZ_" ]},
-                         {id: ["PIQR"],      prefixes: [                 "Q_A_RAT_RLL_"]},
-                         {id: ["PIQP"],      prefixes: [                 "Q_A_RAT_PIT_"]},
-                         {id: ["PIQY"],      prefixes: [                 "Q_A_RAT_YAW_"]},
-                         {id: ["RATE", "R"], prefixes: [ "ATC_RAT_RLL_", "Q_A_RAT_RLL_"]},
-                         {id: ["RATE", "P"], prefixes: [ "ATC_RAT_PIT_", "Q_A_RAT_PIT_"]},
-                         {id: ["RATE", "Y"], prefixes: [ "ATC_RAT_YAW_", "Q_A_RAT_YAW_"]} ]
+    PID_log_messages = [ {id: ["PIDR"], prefixes: [ "ATC_RAT_RLL_", "RLL_RATE_"]},
+                         {id: ["PIDP"], prefixes: [ "ATC_RAT_PIT_", "PTCH_RATE_"]},
+                         {id: ["PIDY"], prefixes: [ "ATC_RAT_YAW_", "YAW_RATE_"]},
+                         {id: ["PIDA"], prefixes: [ "PSC_ACCZ_", "Q_P_ACCZ_" ]} ]
 
     // Set flags for no data
     PID_log_messages.have_data = false
