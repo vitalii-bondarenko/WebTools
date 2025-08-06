@@ -896,9 +896,10 @@ function redraw() {
     const axis_id = PID_log_messages[get_axis_index()].id
     const axis_letter = axis_id.length > 1 ? axis_id[1] : axis_id[0].slice(-1)
 
-    document.getElementById("AttPlot").style.display = axis_letter === 'A' ? 'none' : 'block'
-    if (document.getElementById("AltPlot")) {
-        document.getElementById("AltPlot").style.display = axis_letter === 'A' ? 'block' : 'none'
+    document.getElementById("AttPlot_container").style.display = axis_letter === 'A' ? 'none' : 'flex'
+    const alt_container = document.getElementById("AltPlot_container")
+    if (alt_container) {
+        alt_container.style.display = axis_letter === 'A' ? 'flex' : 'none'
     }
 
     if (axis_letter !== 'A' && Attitude.time != null) {
@@ -1753,6 +1754,18 @@ async function load(log_file) {
 
     const end = performance.now();
     console.log(`Load took: ${end - start} ms`);
+}
+
+function toggle_plot_values(id) {
+    const show = document.getElementById(id + 'Values').checked;
+    const plot = document.getElementById(id);
+    if (!plot || !plot.data) {
+        return;
+    }
+    for (let i = 0; i < plot.data.length; i++) {
+        const text = show ? plot.data[i].y : null;
+        Plotly.restyle(plot, {text: [text], textposition: show ? 'top left' : null}, [i]);
+    }
 }
 
 // Setup the selected axis
