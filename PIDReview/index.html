@@ -99,9 +99,7 @@
 
 <div id="FlightData_container" style="display:flex;align-items:flex-start">
     <div id="FlightData" style="width:1200px;height:450px"></div>
-    <div style="margin-left:10px;">
-        <label><input type="checkbox" id="FlightDataValues" onchange="toggle_plot_values('FlightData')">Show values</label>
-    </div>
+    <div id="FlightData_visibility" style="margin-left:10px;"></div>
 </div>
 
 <table><tr><td style="width:1200px">
@@ -110,33 +108,25 @@
 
 <div id="TimeInputs_container" style="display:flex;align-items:flex-start">
     <div id="TimeInputs" style="width:1200px;height:450px"></div>
-    <div style="margin-left:10px;">
-        <label><input type="checkbox" id="TimeInputsValues" onchange="toggle_plot_values('TimeInputs')">Show values</label>
-    </div>
+    <div id="TimeInputs_visibility" style="margin-left:10px;"></div>
 </div>
 <div id="TimeOutputs_container" style="display:flex;align-items:flex-start">
     <div id="TimeOutputs" style="width:1200px;height:450px"></div>
-    <div style="margin-left:10px;">
-        <label><input type="checkbox" id="TimeOutputsValues" onchange="toggle_plot_values('TimeOutputs')">Show values</label>
-    </div>
+    <div id="TimeOutputs_visibility" style="margin-left:10px;"></div>
 </div>
 <table><tr><td style="width:1200px">
     <h2 style="text-align:center">Attitude Desired vs Actual</h2>
 </td></tr></table>
 <div id="AttPlot_container" style="display:flex;align-items:flex-start">
     <div id="AttPlot" style="width:1200px;height:450px"></div>
-    <div style="margin-left:10px;">
-        <label><input type="checkbox" id="AttPlotValues" onchange="toggle_plot_values('AttPlot')">Show values</label>
-    </div>
+    <div id="AttPlot_visibility" style="margin-left:10px;"></div>
 </div>
 <table><tr><td style="width:1200px">
     <h2 style="text-align:center">Altitude Desired vs Actual</h2>
 </td></tr></table>
 <div id="AltPlot_container" style="display:none;align-items:flex-start">
     <div id="AltPlot" style="width:1200px;height:450px"></div>
-    <div style="margin-left:10px;">
-        <label><input type="checkbox" id="AltPlotValues" onchange="toggle_plot_values('AltPlot')">Show values</label>
-    </div>
+    <div id="AltPlot_visibility" style="margin-left:10px;"></div>
 </div>
 
 <table><tr><td style="width:1200px">
@@ -202,9 +192,7 @@
 
 <div id="FFTPlot_container" style="display:flex;align-items:flex-start">
     <div id="FFTPlot" style="width:1200px;height:450px"></div>
-    <div style="margin-left:10px;">
-        <label><input type="checkbox" id="FFTPlotValues" onchange="toggle_plot_values('FFTPlot')">Show values</label>
-    </div>
+    <div id="FFTPlot_visibility" style="margin-left:10px;"></div>
 </div>
 
 <table>
@@ -242,9 +230,7 @@
 
 <div id="step_plot_container" style="display:flex;align-items:flex-start">
     <div id="step_plot" style="width:1200px;height:450px"></div>
-    <div style="margin-left:10px;">
-        <label><input type="checkbox" id="step_plotValues" onchange="toggle_plot_values('step_plot')">Show values</label>
-    </div>
+    <div id="step_plot_visibility" style="margin-left:10px;"></div>
 </div>
 
 <table><tr><td style="width:1200px">
@@ -253,9 +239,7 @@
 
 <div id="Spectrogram_container" style="display:flex;align-items:flex-start">
     <div id="Spectrogram" style="width:1200px;height:450px"></div>
-    <div style="margin-left:10px;">
-        <label><input type="checkbox" id="SpectrogramValues" onchange="toggle_plot_values('Spectrogram')">Show values</label>
-    </div>
+    <div id="Spectrogram_visibility" style="margin-left:10px;"></div>
 </div>
 
 <table>

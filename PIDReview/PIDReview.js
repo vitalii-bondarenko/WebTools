@@ -230,6 +230,7 @@ function setup_plots() {
     var plot = document.getElementById("FlightData")
     Plotly.purge(plot)
     Plotly.newPlot(plot, flight_data.data, flight_data.layout, {displaylogo: false});
+    add_plot_toggles("FlightData")
 
     // Update start and end time based on range
     document.getElementById("FlightData").on('plotly_relayout', function(data) {
@@ -281,6 +282,7 @@ function setup_plots() {
     var plot = document.getElementById("TimeInputs")
     Plotly.purge(plot)
     Plotly.newPlot(plot, TimeInputs.data, TimeInputs.layout, {displaylogo: false})
+    add_plot_toggles("TimeInputs")
 
 
     const pid_outputs = ["P","I","D","FF","DFF","Output"]
@@ -301,6 +303,7 @@ function setup_plots() {
     plot = document.getElementById("TimeOutputs")
     Plotly.purge(plot)
     Plotly.newPlot(plot, TimeOutputs.data, TimeOutputs.layout, {displaylogo: false})
+    add_plot_toggles("TimeOutputs")
 
     // Attitude Desired vs Actual plot
     const att_inputs = ["Desired", "Actual"]
@@ -321,6 +324,7 @@ function setup_plots() {
     plot = document.getElementById("AttPlot")
     Plotly.purge(plot)
     Plotly.newPlot(plot, AttPlot.data, AttPlot.layout, {displaylogo: false})
+    add_plot_toggles("AttPlot")
 
     // Altitude Desired vs Actual plot
     const alt_inputs = ["Desired Alt", "Altitude"]
@@ -342,6 +346,7 @@ function setup_plots() {
     if (plot) {
         Plotly.purge(plot)
         Plotly.newPlot(plot, AltPlot.data, AltPlot.layout, {displaylogo: false})
+        add_plot_toggles("AltPlot")
     }
 
 
@@ -361,6 +366,7 @@ function setup_plots() {
     plot = document.getElementById("FFTPlot")
     Plotly.purge(plot)
     Plotly.newPlot(plot, fft_plot.data, fft_plot.layout, {displaylogo: false});
+    add_plot_toggles("FFTPlot")
 
     // Step response setup
     step_plot.data = []
@@ -384,6 +390,7 @@ function setup_plots() {
     plot = document.getElementById("step_plot")
     Plotly.purge(plot)
     Plotly.newPlot(plot, step_plot.data, step_plot.layout, {displaylogo: false});
+    add_plot_toggles("step_plot")
 
     // Spectrogram setup
     // Add surface
@@ -407,6 +414,7 @@ function setup_plots() {
     plot = document.getElementById("Spectrogram")
     Plotly.purge(plot)
     Plotly.newPlot(plot, Spectrogram.data, Spectrogram.layout, {displaylogo: false});
+    add_plot_toggles("Spectrogram")
 
     link_plots()
 } 
@@ -541,18 +549,22 @@ function setup_FFT_data() {
     let plot = document.getElementById("TimeInputs")
     Plotly.purge(plot)
     Plotly.newPlot(plot, TimeInputs.data, TimeInputs.layout, {displaylogo: false})
+    add_plot_toggles("TimeInputs")
 
     plot = document.getElementById("TimeOutputs")
     Plotly.purge(plot)
     Plotly.newPlot(plot, TimeOutputs.data, TimeOutputs.layout, {displaylogo: false})
+    add_plot_toggles("TimeOutputs")
 
     plot = document.getElementById("FFTPlot")
     Plotly.purge(plot)
     Plotly.newPlot(plot, fft_plot.data, fft_plot.layout, {displaylogo: false});
+    add_plot_toggles("FFTPlot")
 
     plot = document.getElementById("step_plot")
     Plotly.purge(plot)
     Plotly.newPlot(plot, step_plot.data, step_plot.layout, {displaylogo: false});
+    add_plot_toggles("step_plot")
 
     link_plots()
 
@@ -1756,35 +1768,30 @@ async function load(log_file) {
     console.log(`Load took: ${end - start} ms`);
 }
 
-function toggle_plot_values(id) {
-    const show = document.getElementById(id + 'Values').checked;
+function add_plot_toggles(id) {
+    const container = document.getElementById(id + '_visibility');
     const plot = document.getElementById(id);
 
-    if (!plot || !plot.data) {
+    if (!container || !plot || !plot.data) {
         return;
     }
 
-    for (let i = 0; i < plot.data.length; i++) {
-        // strip any existing text mode to find the base mode
-        const base_mode = (plot.data[i].mode || '')
-            .replace('+text', '')
-            .replace('text', '')
-            .replace('++', '+');
+    container.innerHTML = '';
 
-        if (show) {
-            const text = plot.data[i].y;
-            Plotly.restyle(plot, {
-                mode: base_mode ? base_mode + '+text' : 'text',
-                text: [text],
-                textposition: ['top center']
-            }, [i]);
-        } else {
-            Plotly.restyle(plot, {
-                mode: [base_mode],
-                text: [null],
-                textposition: [null]
-            }, [i]);
-        }
+    for (let i = 0; i < plot.data.length; i++) {
+        const trace = plot.data[i];
+        const label = document.createElement('label');
+        label.style.display = 'block';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = trace.visible !== 'legendonly';
+        cb.onchange = function() {
+            Plotly.restyle(plot, {visible: cb.checked ? true : 'legendonly'}, [i]);
+        };
+        label.appendChild(cb);
+        const name = trace.name || trace.meta || (`Trace ${i+1}`);
+        label.appendChild(document.createTextNode(' ' + name));
+        container.appendChild(label);
     }
 }
 
