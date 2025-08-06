@@ -1759,12 +1759,32 @@ async function load(log_file) {
 function toggle_plot_values(id) {
     const show = document.getElementById(id + 'Values').checked;
     const plot = document.getElementById(id);
+
     if (!plot || !plot.data) {
         return;
     }
+
     for (let i = 0; i < plot.data.length; i++) {
-        const text = show ? plot.data[i].y : null;
-        Plotly.restyle(plot, {text: [text], textposition: show ? 'top left' : null}, [i]);
+        // strip any existing text mode to find the base mode
+        const base_mode = (plot.data[i].mode || '')
+            .replace('+text', '')
+            .replace('text', '')
+            .replace('++', '+');
+
+        if (show) {
+            const text = plot.data[i].y;
+            Plotly.restyle(plot, {
+                mode: base_mode ? base_mode + '+text' : 'text',
+                text: [text],
+                textposition: ['top center']
+            }, [i]);
+        } else {
+            Plotly.restyle(plot, {
+                mode: [base_mode],
+                text: [null],
+                textposition: [null]
+            }, [i]);
+        }
     }
 }
 
