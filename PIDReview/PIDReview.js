@@ -120,6 +120,14 @@ function reset() {
         TimeOutputs.data[i].x = []
         TimeOutputs.data[i].y = []
     }
+    for (let i = 0; i < RateOutput.data.length; i++) {
+        RateOutput.data[i].x = []
+        RateOutput.data[i].y = []
+    }
+    for (let i = 0; i < RateDiff.data.length; i++) {
+        RateDiff.data[i].x = []
+        RateDiff.data[i].y = []
+    }
     for (let i = 0; i < AttPlot.data.length; i++) {
         AttPlot.data[i].x = []
         AttPlot.data[i].y = []
@@ -173,6 +181,10 @@ var AttPlot = {}
 var AltPlot = {}
 var Attitude = {}
 var Altitude = {}
+var RateOutput = {}
+var RateDiff = {}
+const rate_limit_shape = { type: 'line', xref: 'paper', x0: 0, x1: 1, y0: 20, y1: 20,
+                           line: { color: 'red', dash: 'dash' } }
 var fft_plot = {}
 var step_plot = {}
 var Spectrogram = {}
@@ -305,6 +317,42 @@ function setup_plots() {
     Plotly.newPlot(plot, TimeOutputs.data, TimeOutputs.layout, {displaylogo: false})
     add_plot_toggles("TimeOutputs")
 
+    // RATE output plot
+    RateOutput.data = [{ mode: "lines",
+                         name: "Output",
+                         meta: "Output",
+                         showlegend: true,
+                         hovertemplate: "<extra></extra>%{meta}<br>%{x:.2f} s<br>%{y:.2f}" }]
+
+    RateOutput.layout = { legend: {itemclick: false, itemdoubleclick: false },
+                           margin: { b: 50, l: 50, r: 50, t: 20 },
+                           xaxis: { title: {text: time_scale_label } },
+                           yaxis: { title: {text: "" } },
+                           shapes: [Object.assign({}, rate_limit_shape)] }
+
+    plot = document.getElementById("RateOutput")
+    Plotly.purge(plot)
+    Plotly.newPlot(plot, RateOutput.data, RateOutput.layout, {displaylogo: false})
+    add_plot_toggles("RateOutput")
+
+    // RATE tracking error plot
+    RateDiff.data = [{ mode: "lines",
+                       name: "Actual - Desired",
+                       meta: "Actual - Desired",
+                       showlegend: true,
+                       hovertemplate: "<extra></extra>%{meta}<br>%{x:.2f} s<br>%{y:.2f}" }]
+
+    RateDiff.layout = { legend: {itemclick: false, itemdoubleclick: false },
+                        margin: { b: 50, l: 50, r: 50, t: 20 },
+                        xaxis: { title: {text: time_scale_label } },
+                        yaxis: { title: {text: "" } },
+                        shapes: [] }
+
+    plot = document.getElementById("RateDiff")
+    Plotly.purge(plot)
+    Plotly.newPlot(plot, RateDiff.data, RateDiff.layout, {displaylogo: false})
+    add_plot_toggles("RateDiff")
+
     // Attitude Desired vs Actual plot
     const att_inputs = ["Desired", "Actual"]
     AttPlot.data = []
@@ -424,6 +472,8 @@ function link_plots() {
     // Clear listeners
     document.getElementById("TimeInputs").removeAllListeners("plotly_relayout");
     document.getElementById("TimeOutputs").removeAllListeners("plotly_relayout");
+    document.getElementById("RateOutput").removeAllListeners("plotly_relayout");
+    document.getElementById("RateDiff").removeAllListeners("plotly_relayout");
     document.getElementById("AttPlot").removeAllListeners("plotly_relayout");
     if (document.getElementById("AltPlot")) {
         document.getElementById("AltPlot").removeAllListeners("plotly_relayout");
@@ -440,10 +490,12 @@ function link_plots() {
     // Link time axis
     let time_plots = [["TimeInputs", "x", "", TimeInputs],
                       ["TimeOutputs", "x", "", TimeOutputs],
+                      ["RateOutput", "x", "", RateOutput],
+                      ["RateDiff", "x", "", RateDiff],
                       ["AttPlot", "x", "", AttPlot],
                       ["Spectrogram", "x", "", Spectrogram]]
     if (document.getElementById("AltPlot")) {
-        time_plots.splice(2, 0, ["AltPlot", "x", "", AltPlot])
+        time_plots.splice(4, 0, ["AltPlot", "x", "", AltPlot])
     }
     link_plot_axis_range(time_plots)
 
@@ -451,12 +503,14 @@ function link_plots() {
     // Link all reset calls
     let reset_plots = [["TimeInputs", TimeInputs],
                        ["TimeOutputs", TimeOutputs],
+                       ["RateOutput", RateOutput],
+                       ["RateDiff", RateDiff],
                        ["AttPlot", AttPlot],
                        ["FFTPlot", fft_plot],
                        ["step_plot", step_plot],
                        ["Spectrogram", Spectrogram]]
     if (document.getElementById("AltPlot")) {
-        reset_plots.splice(2, 0, ["AltPlot", AltPlot])
+        reset_plots.splice(4, 0, ["AltPlot", AltPlot])
     }
     link_plot_reset(reset_plots)
 
@@ -475,6 +529,8 @@ function setup_FFT_data() {
     // Clear existing data
     TimeInputs.layout.shapes = []
     TimeOutputs.layout.shapes = []
+    RateOutput.layout.shapes = [Object.assign({}, rate_limit_shape)]
+    RateDiff.layout.shapes = []
     AttPlot.layout.shapes = []
     AltPlot.layout.shapes = []
     fft_plot.data = []
@@ -541,6 +597,8 @@ function setup_FFT_data() {
 
         TimeInputs.layout.shapes.push(Object.assign({}, rect))
         TimeOutputs.layout.shapes.push(Object.assign({}, rect))
+        RateOutput.layout.shapes.push(Object.assign({}, rect))
+        RateDiff.layout.shapes.push(Object.assign({}, rect))
         AttPlot.layout.shapes.push(Object.assign({}, rect))
         AltPlot.layout.shapes.push(Object.assign({}, rect))
 
@@ -555,6 +613,16 @@ function setup_FFT_data() {
     Plotly.purge(plot)
     Plotly.newPlot(plot, TimeOutputs.data, TimeOutputs.layout, {displaylogo: false})
     add_plot_toggles("TimeOutputs")
+
+    plot = document.getElementById("RateOutput")
+    Plotly.purge(plot)
+    Plotly.newPlot(plot, RateOutput.data, RateOutput.layout, {displaylogo: false})
+    add_plot_toggles("RateOutput")
+
+    plot = document.getElementById("RateDiff")
+    Plotly.purge(plot)
+    Plotly.newPlot(plot, RateDiff.data, RateDiff.layout, {displaylogo: false})
+    add_plot_toggles("RateDiff")
 
     plot = document.getElementById("FFTPlot")
     Plotly.purge(plot)
@@ -852,6 +920,14 @@ function redraw() {
         TimeOutputs.data[i].x = []
         TimeOutputs.data[i].y = []
     }
+    for (let i = 0; i < RateOutput.data.length; i++) {
+        RateOutput.data[i].x = []
+        RateOutput.data[i].y = []
+    }
+    for (let i = 0; i < RateDiff.data.length; i++) {
+        RateDiff.data[i].x = []
+        RateDiff.data[i].y = []
+    }
     for (let i = 0; i < AttPlot.data.length; i++) {
         AttPlot.data[i].x = []
         AttPlot.data[i].y = []
@@ -870,6 +946,14 @@ function redraw() {
                 for (let j = 0; j < TimeOutputs.data.length; j++) {
                     TimeOutputs.data[j].x.push(NaN)
                     TimeOutputs.data[j].y.push(NaN)
+                }
+                for (let j = 0; j < RateOutput.data.length; j++) {
+                    RateOutput.data[j].x.push(NaN)
+                    RateOutput.data[j].y.push(NaN)
+                }
+                for (let j = 0; j < RateDiff.data.length; j++) {
+                    RateDiff.data[j].x.push(NaN)
+                    RateDiff.data[j].y.push(NaN)
                 }
             }
             // Same x axis for all
@@ -901,6 +985,16 @@ function redraw() {
                 TimeOutputs.data[4].y = TimeOutputs.data[4].y.concat(set[i].DFF)
             }
             TimeOutputs.data[5].y = TimeOutputs.data[5].y.concat(set[i].Out)
+
+            for (let j = 0; j < RateOutput.data.length; j++) {
+                RateOutput.data[j].x = RateOutput.data[j].x.concat(set[i].time)
+            }
+            RateOutput.data[0].y = RateOutput.data[0].y.concat(set[i].Out)
+
+            for (let j = 0; j < RateDiff.data.length; j++) {
+                RateDiff.data[j].x = RateDiff.data[j].x.concat(set[i].time)
+            }
+            RateDiff.data[0].y = RateDiff.data[0].y.concat(array_sub(set[i].Act, set[i].Tar))
         }
     }
 
@@ -948,6 +1042,12 @@ function redraw() {
     TimeOutputs.layout.xaxis.autorange = false
     TimeOutputs.layout.xaxis.range = time_range
 
+    RateOutput.layout.xaxis.autorange = false
+    RateOutput.layout.xaxis.range = time_range
+
+    RateDiff.layout.xaxis.autorange = false
+    RateDiff.layout.xaxis.range = time_range
+
     AttPlot.layout.xaxis.autorange = false
     AttPlot.layout.xaxis.range = time_range
     if (document.getElementById("AltPlot")) {
@@ -969,6 +1069,14 @@ function redraw() {
             TimeOutputs.layout.shapes[i].x1 = set_end
             TimeOutputs.layout.shapes[i].visible = true
 
+            RateOutput.layout.shapes[i+1].x0 = set_start
+            RateOutput.layout.shapes[i+1].x1 = set_end
+            RateOutput.layout.shapes[i+1].visible = true
+
+            RateDiff.layout.shapes[i].x0 = set_start
+            RateDiff.layout.shapes[i].x1 = set_end
+            RateDiff.layout.shapes[i].visible = true
+
             AttPlot.layout.shapes[i].x0 = set_start
             AttPlot.layout.shapes[i].x1 = set_end
             AttPlot.layout.shapes[i].visible = true
@@ -982,6 +1090,8 @@ function redraw() {
 
     Plotly.redraw("TimeInputs")
     Plotly.redraw("TimeOutputs")
+    Plotly.redraw("RateOutput")
+    Plotly.redraw("RateDiff")
     Plotly.redraw("AttPlot")
     if (document.getElementById("AltPlot")) {
         Plotly.redraw("AltPlot")
