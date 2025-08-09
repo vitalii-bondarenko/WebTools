@@ -646,7 +646,15 @@ function setup_plots() {
             rows: 2,
             columns: 1,
             pattern: 'independent'
-        }
+        },
+        shapes: [
+            {type: 'line', xref: 'paper', x0: 0, x1: 1, yref: 'y', y0: -50, y1: -50,
+             line: {dash: 'dot', color: 'grey'}, visible: false},
+            {type: 'line', xref: 'paper', x0: 0, x1: 1, yref: 'y', y0: -60, y1: -60,
+             line: {dash: 'dot', color: 'grey'}, visible: false},
+            {type: 'line', xref: 'paper', x0: 0, x1: 1, yref: 'y', y0: -70, y1: -70,
+             line: {dash: 'dot', color: 'grey'}, visible: false}
+        ]
     }
 
     plot = document.getElementById("Bode")
@@ -1362,6 +1370,13 @@ function redraw_post_estimate_and_bode() {
     Bode.layout.xaxis2.title.text = frequency_scale.label
 
     Bode.layout.yaxis.title.text = amplitude_scale.label
+
+    const show_db_lines = document.getElementById("ScaleLog").checked
+    if (Bode.layout.shapes) {
+        for (let i = 0; i < Bode.layout.shapes.length; i++) {
+            Bode.layout.shapes[i].visible = show_db_lines
+        }
+    }
 
     if (document.getElementById("ScaleWrap").checked) {
         Bode.layout.yaxis2.range = [-180, 180]
