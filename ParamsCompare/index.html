@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Param Compare Tool</title>
+<link rel="icon" href="../images/AP_favicon.png">
+<script type="text/javascript" src="ParamsCompare.js" defer></script>
+<script type="text/javascript" src="../Libraries/Param_Helpers.js" defer></script>
+</head>
+<body>
+<table><tr><td style="width:1200px">
+<h1 style="text-align:center"><a href="" style="color: #000000; text-decoration:none;">ArduPilot Param Compare Tool</a></h1>
+</td></tr></table>
+<div style="text-align:center; margin-bottom:10px;">
+    <button onclick="history.back()">Back to Log Finder</button>
+</div>
+
+<div style="display:flex; gap:20px; justify-content:center;">
+  <div>
+    <h3>First Params</h3>
+    <input type="file" accept=".bin,.params" onchange="readFile(this, 'A')"><br>
+    <textarea id="textA" rows="10" cols="40" placeholder="Paste params here" oninput="readText(this.value, 'A')"></textarea>
+  </div>
+  <div>
+    <h3>Second Params</h3>
+    <input type="file" accept=".bin,.params" onchange="readFile(this, 'B')"><br>
+    <textarea id="textB" rows="10" cols="40" placeholder="Paste params here" oninput="readText(this.value, 'B')"></textarea>
+  </div>
+</div>
+
+<h2 style="text-align:center">Differences</h2>
+<table id="diffTable" style="margin:auto; border-collapse:collapse;">
+  <thead>
+    <tr><th style="padding:4px;">Param</th><th style="padding:4px;">First</th><th style="padding:4px;">Second</th></tr>
+  </thead>
+  <tbody id="diff"></tbody>
+</table>
+</body>
+</html>
