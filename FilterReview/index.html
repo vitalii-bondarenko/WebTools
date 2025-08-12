@@ -710,14 +710,16 @@ These params can then be saved and loaded into the autopilot without the need fo
         if (file == null) {
             return
         }
-        let reader = new FileReader()
-        reader.onload = function (e) {
-            loading_call(async () => { 
-                await load(reader.result)
+        const reader = new FileReader()
+        reader.onload = function (evt) {
+            const data = evt.target.result
+            loading_call(async () => {
+                await load(data)
                 document.title = "Filter Review: " + file.name
             })
         }
         reader.readAsArrayBuffer(file)
+        e.value = ""
     }
 
     const open_in_update = setup_open_in("OpenIn", "fileItem", function (data) { loading_call(() => { load(data) }) })
