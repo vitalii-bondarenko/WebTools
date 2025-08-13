@@ -409,11 +409,6 @@ function reset() {
         flight_data.data[i].x = []
         flight_data.data[i].y = []
     }
-    for (let i = 0; i < vibe_plot.data.length; i++) {
-        vibe_plot.data[i].x = []
-        vibe_plot.data[i].y = []
-        vibe_plot.data[i].line.color = plot_default_color(i)
-    }
     for (let i = 0; i < fft_plot.data.length; i++) {
         fft_plot.data[i].x = []
         fft_plot.data[i].y = []
@@ -432,7 +427,6 @@ function reset() {
     }
 
     Plotly.redraw("FlightData")
-    Plotly.redraw("Vibe")
 
     // Reset FFT plot notch selection
     for (let i = 0; i < 2; i++) {
@@ -475,7 +469,6 @@ var Spectrogram = {}
 var fft_plot = {}
 var Bode = {}
 var flight_data = {}
-var vibe_plot = {}
 const max_num_harmonics = 16
 function setup_plots() {
 
@@ -539,9 +532,6 @@ function setup_plots() {
         function range_update(range) {
             document.getElementById("TimeStart").value = Math.floor(range[0])
             document.getElementById("TimeEnd").value = Math.ceil(range[1])
-            vibe_plot.layout.xaxis.range = range
-            vibe_plot.layout.xaxis.autorange = false
-            Plotly.redraw("Vibe")
             if (Gyro_batch != null) {
                 // If we have data then enable re-calculate on updated range
                 document.getElementById("calculate").disabled = false
@@ -565,35 +555,6 @@ function setup_plots() {
         }
 
     })
-
-
-    // Setup vibration plot
-    vibe_plot.data = []
-    for (let i = 0; i < axis.length; i++) {
-        vibe_plot.data[i] = { mode: "lines",
-                              name: "Vibe " + axis[i],
-                              meta: "Vibe " + axis[i],
-                              line: { color: plot_default_color(i) },
-                              hovertemplate: "<extra></extra>%{meta}<br>%{x:.2f} s<br>%{y:.2f} m/s²" }
-    }
-
-    vibe_plot.layout = {
-        xaxis: { title: { text: time_scale_label }, rangeslider: {} },
-        yaxis: { title: { text: "Acceleration (m/s²)" }, rangemode: "tozero" },
-        margin: { b: 50, l: 50, r: 50, t: 20 },
-        shapes: [
-            { type: 'line', xref: 'paper', x0: 0, x1: 1, y0: 15, y1: 15,
-              line: { color: 'orange', dash: 'dot' } },
-            { type: 'line', xref: 'paper', x0: 0, x1: 1, y0: 20, y1: 20,
-              line: { color: 'red', dash: 'dot' } }
-        ],
-        hovermode: 'x unified'
-    }
-
-    var plotVibe = document.getElementById("Vibe")
-    Plotly.purge(plotVibe)
-    Plotly.newPlot(plotVibe, vibe_plot.data, vibe_plot.layout, {displaylogo: false})
-
 
     amplitude_scale = get_amplitude_scale()
     frequency_scale = get_frequency_scale()
@@ -1957,10 +1918,7 @@ function time_range_changed() {
     const end = parseFloat(document.getElementById("TimeEnd").value)
     flight_data.layout.xaxis.range = [ start, end ]
     flight_data.layout.xaxis.autorange = false
-    vibe_plot.layout.xaxis.range = [ start, end ]
-    vibe_plot.layout.xaxis.autorange = false
     Plotly.redraw("FlightData")
-    Plotly.redraw("Vibe")
 
     document.getElementById('calculate').disabled = false
     document.getElementById('calculate_filters').disabled = false
@@ -2579,26 +2537,6 @@ async function load(log_file) {
         flight_data.data[3].y = log.get("POS", "RelHomeAlt")
     }
 
-    if ("VIBE" in log.messageTypes) {
-        const VIBE_time = TimeUS_to_seconds(log.get("VIBE", "TimeUS"))
-        const vibeX = log.get("VIBE", "VibeX")
-        const vibeY = log.get("VIBE", "VibeY")
-        const vibeZ = log.get("VIBE", "VibeZ")
-        vibe_plot.data[0].x = VIBE_time
-        vibe_plot.data[0].y = vibeX
-        vibe_plot.data[1].x = VIBE_time
-        vibe_plot.data[1].y = vibeY
-        vibe_plot.data[2].x = VIBE_time
-        vibe_plot.data[2].y = vibeZ
-        const vibes = [vibeX, vibeY, vibeZ]
-        for (let i = 0; i < vibes.length; i++) {
-            if (Math.max(...vibes[i]) > 20) {
-                vibe_plot.data[i].line.color = 'red'
-            } else {
-                vibe_plot.data[i].line.color = plot_default_color(i)
-            }
-        }
-    }
 
     // Try and work out which is the primary sensor
     let primary_gyro = 0
@@ -2657,12 +2595,9 @@ async function load(log_file) {
 
         flight_data.layout.xaxis.range = [calc_start_time, calc_end_time]
         flight_data.layout.xaxis.autorange = false
-        vibe_plot.layout.xaxis.range = [calc_start_time, calc_end_time]
-        vibe_plot.layout.xaxis.autorange = false
     }
 
     Plotly.redraw("FlightData")
-    Plotly.redraw("Vibe")
 
     var start_input = document.getElementById("TimeStart")
     start_input.disabled = false
