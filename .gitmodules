@@ -25,3 +25,6 @@
 [submodule "modules/pyAircraftIden"]
 	path = modules/pyAircraftIden
 	url = https://github.com/Astik-2002/pyAircraftIden.git
+[submodule "ardupilot-web-service"]
+	path = ardupilot-web-service
+	url = git@github.com:vitalii-bondarenko/Droneconfigurationservice.git
